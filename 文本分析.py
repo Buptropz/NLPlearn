@@ -222,7 +222,7 @@ def dm05_word_cloud():
 # todo n.测试代码
 if __name__ == '__main__':
     # 1. 测试: 训练集 和 测试集的 标签分布的  可视化统计.
-    dm01_label_sns_countplot()
+    #dm01_label_sns_countplot()
 
     # 2. 测试: 训练集 和 测试集的 句子长度分布的 可视化统计.
     # dm02_len_sns_distplot()
@@ -234,6 +234,6 @@ if __name__ == '__main__':
     # dm04_get_word_count()
 
     # 5. 测试: 训练集和测试集的 高频形容词词云.
-    # dm05_word_cloud()
+    dm05_word_cloud()
 
 
