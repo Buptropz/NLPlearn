@@ -42,6 +42,6 @@ def set_hyper_parameter():
 
 if __name__ == '__main__':
     #train_save()
-    #get_word_vector()
     #get_similarity()
+    #get_word_vector()
     set_hyper_parameter()
