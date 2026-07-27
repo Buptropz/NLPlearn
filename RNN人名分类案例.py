@@ -80,9 +80,33 @@ class NameclassDataset(Dataset):
 
         return tensor_x,tensor_y
 
+#todo 5:创建数据加载器
+def get_dataloader():
+    #读取数据文件
+    my_list_x,my_list_y = read_data('data/name_classfication.txt')
+
+    #创建数据集对象
+    my_dataset = NameclassDataset(my_list_x,my_list_y)
+
+    #创建数据加载器
+    #参数：1.数据集对象 2.batch_size 3.是否打乱数据
+    my_dataloader = DataLoader(my_dataset,batch_size=1,shuffle=True)
+
+    #测试数据加载器
+    for x,y in my_dataloader:
+        print(f'x.shape:{x.shape},y.shape:{y.shape}')
+        break
+
+    #返回加载数据
+    return my_dataloader
+
+
 
 
 if __name__ == '__main__':
     #调用read_data函数，获取数据
-    my_list_x,my_list_y = read_data('data/name_classfication.txt')
-    #打印数据
+    #my_list_x,my_list_y = read_data('data/name_classfication.txt')
+
+    #测试数据集对象
+    get_dataloader()
+
