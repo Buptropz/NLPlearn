@@ -100,7 +100,46 @@ def get_dataloader():
     #返回加载数据
     return my_dataloader
 
+#todo 6:创建模型
+#1.RNN模型
+class RNN(nn.Module):
+    def __init__(self,input_size,hidden_size,output_size,n_layers=1):
+        #初始化父类成员
+        super().__init__()
 
+        #创建成员变量
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.n_layers = n_layers
+
+        #定义模型
+        self.rnn = nn.RNN(self.input_size,self.hidden_size,self.n_layers)
+        #定义全连接层
+        self.fc = nn.Linear(self.hidden_size,self.output_size)
+        #定义激活函数，将输出类别转换为概率分布
+        #NLLLOSS损失函数+LogSoftmax(dim=-1）
+        self.log_softmax = nn.LogSoftmax(dim=-1)
+
+    #定义前向传播
+    #参数：输入张量，隐藏状态
+    def forward(self,input,hidden):
+        #调整张量的形状
+        input = input.unsqueeze(1)
+        #计算输出张量
+        output,hidden = self.rnn(input,hidden)
+        #提取最后一个时间步的隐藏状态
+        output = output[-1]
+        #计算输出张量
+        output = self.fc(output)
+        #计算概率分布
+        return self.log_softmax(output),hidden
+
+    #定义初始化隐藏状态
+    def init_hidden(self):
+        #创建张量
+        #参数：层数，批量大小，隐藏维度
+        return torch.zeros(self.n_layers,1,self.hidden_size)
 
 
 if __name__ == '__main__':
