@@ -141,11 +141,28 @@ class RNN(nn.Module):
         #参数：层数，批量大小，隐藏维度
         return torch.zeros(self.n_layers,1,self.hidden_size)
 
+#todo 7:测试神经网络
+def test_model_rnn():
+    #创建模型
+    model = RNN(57,128,18)
+    #准备测试数据
+    input = torch.randn(6,57)
+    #创建隐藏状态
+    hidden = model.init_hidden()
+    #4.测试模型
+    output,hidden = model(input,hidden)
+    print(f'output.shape:{output.shape}')
+    print(f'hidden.shape:{hidden.shape}')
+
 
 if __name__ == '__main__':
     #调用read_data函数，获取数据
     #my_list_x,my_list_y = read_data('data/name_classfication.txt')
 
     #测试数据集对象
-    get_dataloader()
+    #get_dataloader()
+
+    #rnn模型测试
+    test_model_rnn()
+
 
