@@ -141,7 +141,90 @@ class RNN(nn.Module):
         #参数：层数，批量大小，隐藏维度
         return torch.zeros(self.n_layers,1,self.hidden_size)
 
+#2.lstm模型
+class LSTM(nn.Module):
+    def __init__(self,input_size,hidden_size,output_size,n_layers=1):
+        #初始化父类成员
+        super().__init__()
+
+        #创建成员变量
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.n_layers = n_layers
+
+        #定义模型
+        self.rnn = nn.LSTM(self.input_size,self.hidden_size,self.n_layers)
+        #定义全连接层
+        self.fc = nn.Linear(self.hidden_size,self.output_size)
+        #定义激活函数，将输出类别转换为概率分布
+        #NLLLOSS损失函数+LogSoftmax(dim=-1）
+        self.log_softmax = nn.LogSoftmax(dim=-1)
+
+    #定义前向传播
+    #参数：输入张量，隐藏状态
+    def forward(self,input,hidden,c):
+        #调整张量的形状
+        input = input.unsqueeze(1)
+        #计算输出张量
+        output,(hidden,c)= self.rnn(input,(hidden,c))
+        #提取最后一个时间步的隐藏状态
+        output = output[-1]
+        #计算输出张量
+        output = self.fc(output)
+        #计算概率分布
+        #返回值：概率分布张量，隐藏状态张量
+        return self.log_softmax(output),hidden,c
+
+    #定义初始化隐藏状态
+    def init_hidden(self):
+        #创建张量
+        #参数：层数，批量大小，隐藏维度
+        hidden = c = torch.zeros(self.n_layers,1,self.hidden_size)
+        return hidden,c
+
+#3.GRU模型
+class GRU(nn.Module):
+    def __init__(self,input_size,hidden_size,output_size,n_layers=1):
+        #初始化父类成员
+        super().__init__()
+
+        #创建成员变量
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.n_layers = n_layers
+
+        #定义模型
+        self.rnn = nn.GRU(self.input_size,self.hidden_size,self.n_layers)
+        #定义全连接层
+        self.fc = nn.Linear(self.hidden_size,self.output_size)
+        #定义激活函数，将输出类别转换为概率分布
+        #NLLLOSS损失函数+LogSoftmax(dim=-1）
+        self.log_softmax = nn.LogSoftmax(dim=-1)
+
+    #定义前向传播
+    #参数：输入张量，隐藏状态
+    def forward(self,input,hidden):
+        #调整张量的形状
+        input = input.unsqueeze(1)
+        #计算输出张量
+        output,hidden = self.rnn(input,hidden)
+        #提取最后一个时间步的隐藏状态
+        output = output[-1]
+        #计算输出张量
+        output = self.fc(output)
+        #计算概率分布
+        return self.log_softmax(output),hidden
+
+    #定义初始化隐藏状态
+    def init_hidden(self):
+        #创建张量
+        #参数：层数，批量大小，隐藏维度
+        return torch.zeros(self.n_layers,1,self.hidden_size)
+
 #todo 7:测试神经网络
+#1.RNN模型测试
 def test_model_rnn():
     #创建模型
     model = RNN(57,128,18)
@@ -154,6 +237,64 @@ def test_model_rnn():
     print(f'output.shape:{output.shape}')
     print(f'hidden.shape:{hidden.shape}')
 
+#2.RNN，lstm和GRU模型测试案例
+def test_model_lstm_gru():
+    #定义遍历，获取数据
+    input_size,n_hidden,output_size = n_letters,128,n_categories
+    #加载数据
+    my_list_x,my_list_y = read_data('data/name_classfication.txt')
+    #创建数据集对象
+    my_dataset = NameclassDataset(my_list_x,my_list_y)
+    #创建数据加载器
+    my_dataloader = DataLoader(my_dataset,batch_size=1,shuffle=True)
+    #模型初始化
+    my_rnn= RNN(input_size,n_hidden,output_size)
+    my_lstm = LSTM(input_size,n_hidden,output_size)
+    my_gru = GRU(input_size,n_hidden,output_size)
+    #模型可视化
+    print(f'rnn:{my_rnn}')
+    print(f'lstm:{my_lstm}')
+    print(f'gru:{my_gru}')
+
+    #测试RNN模型
+    for i,(x,y) in enumerate(my_dataloader):
+        print(f'i:{i}')      #编号，第i条数据
+        print(f'x:{x}')       #输入数据
+        print(f'y:{y}')       #输出数据
+
+        #创建隐藏状态
+        hidden = my_rnn.init_hidden()
+        #前向传播
+        output,hidden = my_rnn(x[0],hidden)
+        print(f'RNN输出形状：{output.shape}')
+
+        if i==0:
+            break
+
+    #测试LSTM模型
+    for i,(x,y) in enumerate(my_dataloader):
+        print(f'i:{i}')
+        print(f'x:{x}')
+        print(f'y:{y}')
+        #创建隐藏状态
+        hidden,c = my_lstm.init_hidden()
+        #前向传播
+        output,(hidden,c) = my_lstm(x[0],(hidden,c))
+        print(f'LSTM输出形状：{output.shape}')
+
+        if i==0:
+            break
+
+    #测试GRU模型
+    for i,(x,y) in enumerate(my_dataloader):
+        #创建隐藏状态
+        hidden = my_gru.init_hidden()
+        #前向传播
+        output,hidden = my_gru(x[0],hidden)
+        print(f'GRU输出形状：{output.shape}')
+
+        if i==0:
+            break
 
 if __name__ == '__main__':
     #调用read_data函数，获取数据
@@ -163,6 +304,9 @@ if __name__ == '__main__':
     #get_dataloader()
 
     #rnn模型测试
-    test_model_rnn()
+    #test_model_rnn()
+
+    #测试模型
+    test_model_lstm_gru()
 
 
