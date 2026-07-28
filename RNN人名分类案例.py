@@ -296,6 +296,36 @@ def test_model_lstm_gru():
         if i==0:
             break
 
+#todo 8.模型训练
+#定义变量，记录：学习率，训练轮数
+my_lr,my_epochs = 0.005,1
+
+#RNN模型训练
+def train_model_rnn():
+    #数据准备
+    my_list_x,my_list_y = read_data('data/name_classfication.txt')
+    my_dataset = NameclassDataset(my_list_x,my_list_y)
+
+    #模型与优化器初始化
+    #参数：输入维度，隐藏维度，隐藏层数
+    input_size,n_hidden,output_size = n_letters,128,n_categories
+    my_rnn = RNN(input_size,n_hidden,output_size)
+    #定义损失函数和优化器
+    criterion = nn.NLLLoss()
+    optimizer = optim.Adam(my_rnn.parameters(),lr=my_lr)
+
+    #参数初始化
+    start_time= time.time()         #记录开始时间
+    total_num = 0                   #已训练的样本数
+    total_loss = 0.0                #已训练的损失和
+    total_loss_list = []        #已训练的loss列表
+    total_acc_num = 0           #已训练的准确数
+    total_acc_list = []         #已训练的准确列表
+
+    #4.具体的训练过程，循环轮数
+    
+
+
 if __name__ == '__main__':
     #调用read_data函数，获取数据
     #my_list_x,my_list_y = read_data('data/name_classfication.txt')
@@ -307,6 +337,6 @@ if __name__ == '__main__':
     #test_model_rnn()
 
     #测试模型
-    test_model_lstm_gru()
+    #test_model_lstm_gru()
 
 
