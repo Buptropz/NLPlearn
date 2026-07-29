@@ -298,7 +298,7 @@ def test_model_lstm_gru():
 
 #todo 8.模型训练
 #定义变量，记录：学习率，训练轮数
-my_lr,my_epochs = 0.005,10
+my_lr,my_epochs = 0.005,1
 
 #RNN模型训练
 def train_model_rnn():
@@ -346,6 +346,7 @@ def train_model_rnn():
             if total_num%100 == 0:
                 avg_loss = total_loss/total_num
                 total_loss_list.append(avg_loss)
+                total_acc_list.append(total_acc_num / total_num)
 
             #打印训练日志
             if total_num % 2000 == 0:
@@ -411,6 +412,7 @@ def train_model_lstm():
             if total_num%100 == 0:
                 avg_loss = total_loss/total_num
                 total_loss_list.append(avg_loss)
+                total_acc_list.append(total_acc_num / total_num)
 
             #打印训练日志
             if total_num % 2000 == 0:
@@ -475,6 +477,7 @@ def train_model_gpu():
             if total_num%100 == 0:
                 avg_loss = total_loss/total_num
                 total_loss_list.append(avg_loss)
+                total_acc_list.append(total_acc_num / total_num)
 
             #打印训练日志
             if total_num % 2000 == 0:
@@ -494,22 +497,83 @@ def train_model_gpu():
     return total_loss_list,total_time,total_acc_list
 
 
+def plot_training_history(loss_list, acc_list, model_name, total_time, save_dir='./runs'):
+    """
+    绘制训练过程的 Loss 曲线、Accuracy 曲线、双轴合并图及汇总信息面板。
+    """
+    import os
+    os.makedirs(save_dir, exist_ok=True)
+
+    steps = [(i + 1) * 100 for i in range(len(loss_list))]
+
+    plt.style.use('fivethirtyeight')
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    fig.suptitle(f'{model_name} 训练面板', fontsize=16, fontweight='bold')
+
+    # 左上：Loss 曲线
+    ax1 = axes[0, 0]
+    ax1.plot(steps, loss_list, color='#E74C3C', linewidth=1.5)
+    ax1.set_title('Loss 曲线')
+    ax1.set_xlabel('样本数')
+    ax1.set_ylabel('Loss')
+    ax1.grid(True, alpha=0.3)
+
+    # 右上：Accuracy 曲线
+    ax2 = axes[0, 1]
+    ax2.plot(steps, acc_list, color='#2ECC71', linewidth=1.5)
+    ax2.set_title('Accuracy 曲线')
+    ax2.set_xlabel('样本数')
+    ax2.set_ylabel('Accuracy')
+    ax2.grid(True, alpha=0.3)
+
+    # 左下：Loss + Accuracy 双轴合并图
+    ax3 = axes[1, 0]
+    ax3.plot(steps, loss_list, color='#E74C3C', linewidth=1.5, label='Loss')
+    ax3.set_xlabel('样本数')
+    ax3.set_ylabel('Loss', color='#E74C3C')
+    ax3.tick_params(axis='y', labelcolor='#E74C3C')
+
+    ax3_twin = ax3.twinx()
+    ax3_twin.plot(steps, acc_list, color='#2ECC71', linewidth=1.5, label='Accuracy')
+    ax3_twin.set_ylabel('Accuracy', color='#2ECC71')
+    ax3_twin.tick_params(axis='y', labelcolor='#2ECC71')
+
+    ax3.set_title('Loss & Accuracy 双轴合并')
+    lines1, labels1 = ax3.get_legend_handles_labels()
+    lines2, labels2 = ax3_twin.get_legend_handles_labels()
+    ax3.legend(lines1 + lines2, labels1 + labels2, loc='upper right')
+    ax3.grid(True, alpha=0.3)
+
+    # 右下：汇总信息
+    ax4 = axes[1, 1]
+    ax4.axis('off')
+    final_loss = loss_list[-1] if loss_list else 0
+    final_acc = acc_list[-1] if acc_list else 0
+    hours = total_time // 3600
+    minutes = (total_time % 3600) // 60
+    seconds = total_time % 60
+
+    summary_lines = [
+        f'模型名称：{model_name}',
+        f'总耗时：{hours}h {minutes}m {seconds}s',
+        f'总样本步数：{steps[-1] if steps else 0}',
+        f'',
+        f'最终 Loss：{final_loss:.4f}',
+        f'最终 Accuracy：{final_acc:.4f}',
+    ]
+    for i, line in enumerate(summary_lines):
+        ax4.text(0.1, 0.85 - i * 0.12, line, transform=ax4.transAxes,
+                 fontsize=13, family='monospace')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    save_path = os.path.join(save_dir, f'{model_name}_training.png')
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.show()
+    print(f'训练面板图已保存至：{save_path}')
+
+
 if __name__ == '__main__':
-    #调用read_data函数，获取数据
-    #my_list_x,my_list_y = read_data('data/name_classfication.txt')
+    loss_list, total_time, acc_list = train_model_rnn()
+    plot_training_history(loss_list, acc_list, 'RNN', total_time)
 
-    #测试数据集对象
-    #get_dataloader()
-
-    #rnn模型测试
-    #test_model_rnn()
-
-    #测试模型
-    #test_model_lstm_gru()
-
-    #训练模型
-    #train_model_rnn()
-    #train_model_lstm()
-    #train_model_gpu()
-
-
+    
