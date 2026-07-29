@@ -429,6 +429,70 @@ def train_model_lstm():
 
     return total_loss_list,total_time,total_acc_list
 
+#GPU模型训练
+def train_model_gpu():
+    #数据准备
+    my_list_x,my_list_y = read_data('data/name_classfication.txt')
+    my_dataset = NameclassDataset(my_list_x,my_list_y)
+
+    #模型与优化器初始化
+    #参数：输入维度，隐藏维度，隐藏层数
+    input_size,n_hidden,output_size = n_letters,128,n_categories
+    my_rnn = GRU(input_size,n_hidden,output_size)
+    #定义损失函数和优化器
+    criterion = nn.NLLLoss()
+    optimizer = optim.Adam(my_rnn.parameters(),lr=my_lr)
+
+    #参数初始化
+    start_time= time.time()         #记录开始时间
+    total_num = 0                   #已训练的样本数
+    total_loss = 0.0                #已训练的损失和
+    total_loss_list = []        #已训练的loss列表
+    total_acc_num = 0           #已训练的准确数
+    total_acc_list = []         #已训练的准确列表
+
+    #4.具体的训练过程，循环轮数
+    for epoch in range(my_epochs):
+        print(f'epoch:{epoch+1}/{my_epochs}')
+        #4.1创建数据加载器
+        my_dataloader = DataLoader(my_dataset,batch_size=1,shuffle=True)
+        #4.2训练过程
+        for i,(x,y) in enumerate(tqdm(my_dataloader)):
+            #前向传播、
+            output,hidden = my_rnn(x[0],my_rnn.init_hidden())
+            #计算损失
+            loss = criterion(output,y)
+            #梯度清零，反向传播，优化器更新参数
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            #训练统计
+            total_num += 1
+            total_loss += loss.item()
+            #计算准确率
+            pred_tag = torch.argmax(output).item()
+            total_acc_num +=(1 if pred_tag == y else 0)
+            if total_num%100 == 0:
+                avg_loss = total_loss/total_num
+                total_loss_list.append(avg_loss)
+
+            #打印训练日志
+            if total_num % 2000 == 0:
+                #计算损失
+                avg_loss = total_loss/total_num
+                #计算耗时
+                used_time = int(time.time()-start_time)
+                print(f'轮次：{epoch+1}/{my_epochs}，样本：{total_num}，损失：{avg_loss:.4f}，准确率：{total_acc_num/total_num:.4f}，耗时：{used_time}秒')
+
+        #保存模型
+        torch.save(my_rnn.state_dict(),f'./model/my_gru_{epoch+1}.bin')
+
+    #5.走到这里，训练结束，返回结果
+    total_time = int(time.time()-start_time)
+    print(f'训练完成，总耗时：{total_time}秒，总样本：{total_num}，总损失：{total_loss:.4f}，总准确率：{total_acc_num/total_num:.4f}')
+
+    return total_loss_list,total_time,total_acc_list
+
 
 if __name__ == '__main__':
     #调用read_data函数，获取数据
@@ -446,5 +510,6 @@ if __name__ == '__main__':
     #训练模型
     #train_model_rnn()
     #train_model_lstm()
+    #train_model_gpu()
 
 
