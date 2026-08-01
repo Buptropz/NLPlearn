@@ -121,6 +121,5 @@ if __name__ == '__main__':
     output, attn_weights = my_attn(Q, K, V)
 
     # 4. 输出结果.
-    print(' =.= ' * 40)
-    print(f'查询张量Q的注意力结果表示: {output.shape}, {output}')              # torch.Size([1, 1, 32])
+    print(' =.= ' * 40)           # torch.Size([1, 1, 32])
     print(f'查询张量Q的注意力权重分布: {attn_weights.shape}, {attn_weights}')   # torch.Size([1, 32])
